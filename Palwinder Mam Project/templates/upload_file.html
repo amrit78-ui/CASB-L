@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload & Predict — CASB-IRL</title>
+    <meta name="description" content="Upload your student CSV or Excel dataset for CASB-IRL batch predictions. Get learning speed, behavior categories, and IRL reward scores for all students.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .upload-file-section { padding: 110px 0 80px; position: relative; z-index: 1; }
+
+        /* ── DROPZONE ── */
+        .dropzone {
+            border: 2px dashed rgba(0, 198, 255, 0.4);
+            background: var(--glass);
+            border-radius: 24px;
+            padding: 60px 36px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            backdrop-filter: blur(16px);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--accent);
+            background: rgba(0, 198, 255, 0.07);
+            box-shadow: 0 0 40px rgba(0, 198, 255, 0.22), 0 20px 60px rgba(0,0,0,0.3);
+            transform: translateY(-3px);
+        }
+        .dropzone-cloud-icon {
+            font-size: 4rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 22px;
+            display: block;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .dropzone:hover .dropzone-cloud-icon { transform: scale(1.18) translateY(-6px); }
+        .dropzone h4 { font-size: 1.35rem; font-weight: 700; margin-bottom: 10px; }
+        .dropzone p { font-size: 1rem; color: var(--text-muted); margin-bottom: 8px; }
+        .dropzone-sub { font-size: 0.8rem; color: rgba(255,255,255,0.38); }
+        #csvFileInput { display: none; }
+
+        /* Scan glow animation on dropzone */
+        @keyframes scanGlow {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(800%); }
+        }
+        .dropzone-scanner {
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: scanGlow 2.2s linear infinite;
+            display: none;
+        }
+
+        /* ── FILE PREVIEW PANEL ── */
+        .file-preview-panel {
+            background: var(--glass);
+            border: 1px solid rgba(0, 198, 255, 0.3);
+            border-radius: 18px;
+            padding: 22px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 8px 30px rgba(0,198,255,0.12);
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── STAT CARDS ── */
+        .stat-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 28px 24px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            transition: all 0.35s ease;
+            box-shadow: var(--card-shadow);
+        }
+        .stat-card:hover { transform: translateY(-6px); border-color: var(--accent); box-shadow: 0 20px 50px rgba(0,198,255,0.18); }
+        .stat-num {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 6px;
+        }
+
+        /* Loader animations */
+        @keyframes spinLoader {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes loadBar {
+            0%   { width: 0%; }
+            50%  { width: 75%; }
+            100% { width: 100%; }
+        }
+
+        /* ── RESULTS TABLE ── */
+        .results-wrapper {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(15px);
+        }
+        .table-responsive { max-height: 620px; overflow-y: auto; }
+        .table { margin-bottom: 0; color: var(--text); border-collapse: separate; border-spacing: 0; }
+        .table thead th {
+            background: linear-gradient(135deg, var(--accent2), var(--accent));
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            border: none;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            text-align: center;
+        }
+        .table tbody tr { transition: background 0.25s ease; background: transparent; }
+        .table tbody tr:hover { background: rgba(0, 198, 255, 0.07) !important; }
+        .table tbody td { padding: 14px 20px; font-size: 0.9rem; border-bottom: 1px solid var(--glass-border); color: #ffffff; text-align: center; vertical-align: middle; }
+        .table tbody tr:last-child td { border-bottom: none; }
+
+        /* ── TAGS ── */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .tag-fast    { background: rgba(52,211,153,0.15);  color: #34d399; border: 1px solid rgba(52,211,153,0.3);  }
+        .tag-average { background: rgba(251,191,36,0.15);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.3);  }
+        .tag-slow    { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+        .tag-pos     { background: rgba(52,211,153,0.15);  color: #34d399; border: 1px solid rgba(52,211,153,0.3);  }
+        .tag-neg     { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+        .score-val   { font-weight: 700; font-family: monospace; font-size: 0.95rem; }
+
+        /* Search */
+        .search-container .form-control {
+            border-radius: 30px;
+            padding: 10px 22px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text);
+            backdrop-filter: blur(10px);
+        }
+        .search-container .form-control:focus {
+            box-shadow: 0 0 15px rgba(0,198,255,0.4);
+            border-color: var(--accent);
+        }
+
+        /* Page header badge */
+        .page-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,198,255,0.1);
+            border: 1px solid rgba(0,198,255,0.3);
+            color: #38bdf8;
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top custom-nav">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">CASB-IRL</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/upload_page"><i class="fa-solid fa-file-csv me-1"></i>Batch Prediction</a>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="/history_page">History</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Particles Background -->
+    <div id="particles-js"></div>
+
+    <section class="upload-file-section">
+        <div class="container">
+
+            <!-- PAGE HEADER -->
+            <div class="text-center mb-5" data-aos="fade-down">
+                <div class="page-badge mx-auto">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Step 1 of 2 — Upload File
+                </div>
+                <h1 class="fw-bold mb-3" style="font-size:clamp(1.8rem,4vw,2.8rem); background:linear-gradient(135deg,#fff 0%,var(--accent) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+                    Upload Your Student Dataset
+                </h1>
+                <p class="section-text mx-auto" style="max-width:580px;">
+                    Drag &amp; drop your <strong style="color:var(--accent);">.csv</strong>, <strong style="color:var(--accent);">.xlsx</strong>, or <strong style="color:var(--accent);">.xls</strong> file below. CASB-IRL will analyze each student using Inverse Reinforcement Learning and display ranked predictions instantly.
+                </p>
+                <a href="/upload_page" style="font-size:0.85rem;color:var(--text-muted);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-top:8px;transition:color 0.3s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Batch Prediction
+                </a>
+            </div>
+
+            <!-- DROPZONE -->
+            <div id="uploadArea" data-aos="fade-up">
+                <div class="row justify-content-center mb-3">
+                    <div class="col-lg-9">
+                        <div class="dropzone" id="dropzone" onclick="document.getElementById('csvFileInput').click()">
+                            <div class="dropzone-scanner" id="scanner"></div>
+                            <i class="fa-solid fa-cloud-arrow-up dropzone-cloud-icon"></i>
+                            <h4>Drag &amp; Drop your CSV or Excel file here</h4>
+                            <p>or click anywhere to browse local files from your system</p>
+                            <span class="dropzone-sub">Accepts .csv, .xlsx, and .xls format spreadsheets (must include student names)</span>
+                            <input type="file" id="csvFileInput" accept=".csv, .xlsx, .xls" onchange="handleFileSelect(event)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FILE PREVIEW + SUBMIT PANEL -->
+                <div class="row justify-content-center mb-4" id="submitPanel" style="display:none;">
+                    <div class="col-lg-9">
+                        <div class="file-preview-panel">
+                            <div style="display:flex;align-items:center;gap:16px;">
+                                <i class="fa-solid fa-file-circle-check" style="font-size:2.2rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex-shrink:0;"></i>
+                                <div>
+                                    <div style="font-weight:700;font-size:1.05rem;color:var(--text);" id="selectedFileName">No file selected</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:3px;"><i class="fa-solid fa-circle-check me-1" style="color:#34d399;"></i>File ready — click Submit to start CASB-IRL analysis</div>
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:12px;align-items:center;flex-shrink:0;">
+                                <button onclick="resetUpload()" style="background:transparent;border:1px solid var(--glass-border);color:var(--text-muted);padding:10px 22px;border-radius:30px;cursor:pointer;font-size:0.88rem;transition:all 0.3s;white-space:nowrap;" onmouseover="this.style.borderColor='#f87171';this.style.color='#f87171'" onmouseout="this.style.borderColor='var(--glass-border)';this.style.color='var(--text-muted)'">
+                                    <i class="fa-solid fa-xmark me-1"></i>Cancel
+                                </button>
+                                <button id="submitBtn" onclick="submitFile()" class="btn download-btn mt-0" style="padding:11px 32px;border-radius:30px;font-size:0.98rem;white-space:nowrap;">
+                                Submit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOADER -->
+            <div class="text-center py-5" id="uploadLoader" style="display:none;" data-aos="fade-up">
+                <div style="width:72px;height:72px;border-radius:50%;background:rgba(0,198,255,0.1);border:2px solid rgba(0,198,255,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;animation:spinLoader 2s linear infinite;">
+                    <i class="fa-solid fa-brain" style="font-size:1.8rem;color:var(--accent);"></i>
+                </div>
+                <h4 class="fw-bold mb-2" style="color:var(--accent);">Analyzing Student Dataset...</h4>
+                <p class="text-white-50" style="font-size:0.95rem;">Evaluating contextual metrics, scaling features, and calculating IRL reward matrices.</p>
+                <div style="width:260px;height:4px;background:rgba(255,255,255,0.06);border-radius:10px;margin:20px auto 0;overflow:hidden;">
+                    <div style="height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:10px;animation:loadBar 2s ease-in-out infinite;"></div>
+                </div>
+            </div>
+
+            <!-- ERROR ALERT -->
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorAlert" style="display:none;border-radius:14px;border:1px solid rgba(248,113,113,0.4);background:rgba(248,113,113,0.08);">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                <span id="errorMessage">Error parsing dataset. Please try again.</span>
+                <button type="button" class="btn-close" onclick="document.getElementById('errorAlert').style.display='none'"></button>
+            </div>
+
+            <!-- RESULTS WORKSPACE -->
+            <div id="resultsWorkspace" style="display:none;" data-aos="fade-up">
+                
+                <!-- DIVIDER -->
+                <div class="text-center mb-5 mt-2">
+                    <div style="display:inline-flex;align-items:center;gap:12px;background:rgba(0,198,255,0.08);border:1px solid rgba(0,198,255,0.2);border-radius:50px;padding:8px 24px;">
+                        <i class="fa-solid fa-circle-check" style="color:#34d399;font-size:0.9rem;"></i>
+                        <span style="font-size:0.85rem;font-weight:600;color:var(--text-muted);">Prediction Complete — Results Below</span>
+                        <i class="fa-solid fa-chevron-down" style="color:var(--accent);font-size:0.8rem;"></i>
+                    </div>
+                </div>
+
+                <!-- STATS DASHBOARD -->
+                <div class="row g-4 mb-5">
+                    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="100">
+                        <div class="stat-card">
+                            <div class="stat-num" id="totalCount">0</div>
+                            <div class="stat-label">Total Evaluated</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="200">
+                        <div class="stat-card">
+                            <div class="stat-num" id="fastLearnersCount">0</div>
+                            <div class="stat-label">Fast Learners (Top 30)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="300">
+                        <div class="stat-card">
+                            <div class="stat-num" id="positiveBehaviorCount">0</div>
+                            <div class="stat-label">Positive Behaviors (Top 30)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABLE HEADER UTILITIES -->
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+                    <div>
+                        <h3 class="fw-bold mb-1"><i class="fa-solid fa-list-ol me-2" style="color:var(--accent)"></i>Ranked Top 30 Students</h3>
+                        <p class="text-white-50 mb-0" style="font-size:0.88rem;">Profiles sorted by IRL Policy Reward Score — highest to lowest.</p>
+                    </div>
+                    <div class="d-flex gap-3 align-items-center flex-wrap">
+                        <div class="search-container">
+                            <input type="text" class="form-control" id="tableSearch" placeholder="Filter by name or course..." oninput="filterResults()" style="min-width:220px;">
+                        </div>
+                        <a id="excelDownloadBtn" href="#" class="btn download-btn mt-0">
+                            <i class="fa-solid fa-file-excel me-2"></i>Download Report File
+                        </a>
+                    </div>
+                </div>
+
+                <!-- TOP 30 TABLE -->
+                <div class="results-wrapper mb-5">
+                    <div class="table-responsive">
+                        <table class="table align-middle" id="predictionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Student Name</th>
+                                    <th>Program / Course</th>
+                                    <th>Semester</th>
+                                    <th>Learning Speed</th>
+                                    <th>Behavior Category</th>
+                                    <th>Behavior Sentiment</th>
+                                    <th>Reward Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsBody">
+                                <!-- Dynamic rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div class="text-center d-flex justify-content-center gap-3 flex-wrap mt-2 mb-3">
+                    <button onclick="resetUpload()" class="btn download-btn mt-0" style="background:linear-gradient(135deg,#334155,#475569);box-shadow:0 4px 20px rgba(0,0,0,0.3);padding:14px 36px;border-radius:30px;font-size:1rem;">
+                        <i class="fa-solid fa-cloud-arrow-up me-2"></i>Upload New File
+                    </button>
+                    <a href="/upload_page" class="outline-btn btn-lg px-5" style="margin-top:0;padding:14px 36px;font-size:1rem;">
+                        <i class="fa-solid fa-arrow-left me-2"></i>Back to Batch Prediction
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer-section py-4 text-center mt-2" style="background:rgba(0,0,0,0.4);backdrop-filter:blur(10px);border-top:1px solid var(--glass-border);position:relative;z-index:1;">
+        <div class="container">
+            <h4 class="fw-bold mb-3" style="background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CASB-IRL</h4>
+            <p class="mb-0 text-white-50" style="font-size:0.9rem;">&copy; 2026 Context-Aware Student Prediction System. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        AOS.init({ duration: 800, once: true });
+
+        // Particles
+        particlesJS("particles-js", {
+            "particles": {
+                "number": { "value": 55, "density": { "enable": true, "value_area": 850 } },
+                "color": { "value": "#00c6ff" },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.38, "random": true },
+                "size": { "value": 2.8, "random": true },
+                "line_linked": { "enable": true, "distance": 145, "color": "#00c6ff", "opacity": 0.3, "width": 1 },
+                "move": { "enable": true, "speed": 1.6 }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": true, "mode": "repulse" }, "onclick": { "enable": true, "mode": "push" } }
+            },
+            "retina_detect": true
+        });
+
+        // ── DRAG & DROP ──
+        const dropzone = document.getElementById('dropzone');
+        const scanner  = document.getElementById('scanner');
+
+        ['dragenter', 'dragover'].forEach(evt => {
+            dropzone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(evt => {
+            dropzone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+            }, false);
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) previewFile(files[0]);
+        });
+
+        let selectedFile = null;
+        let completeResults = [];
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) previewFile(file);
+        }
+
+        function previewFile(file) {
+            const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            if (ext !== '.csv' && ext !== '.xlsx' && ext !== '.xls') {
+                showError("Please upload a file in .csv, .xlsx, or .xls format only.");
+                return;
+            }
+            selectedFile = file;
+            document.getElementById('selectedFileName').textContent = file.name;
+            document.getElementById('submitPanel').style.display = 'flex';
+            document.getElementById('errorAlert').style.display = 'none';
+            document.getElementById('submitPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function submitFile() {
+            if (!selectedFile) return;
+            uploadFile(selectedFile);
+        }
+
+        function resetUpload() {
+            selectedFile = null;
+            document.getElementById('csvFileInput').value = '';
+            document.getElementById('selectedFileName').textContent = 'No file selected';
+            document.getElementById('submitPanel').style.display = 'none';
+            document.getElementById('uploadArea').style.display = 'block';
+            document.getElementById('resultsWorkspace').style.display = 'none';
+            document.getElementById('errorAlert').style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function uploadFile(file) {
+            document.getElementById('uploadArea').style.display = 'none';
+            document.getElementById('resultsWorkspace').style.display = 'none';
+            document.getElementById('errorAlert').style.display = 'none';
+            document.getElementById('uploadLoader').style.display = 'block';
+            scanner.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(res => {
+                document.getElementById('uploadLoader').style.display = 'none';
+                scanner.style.display = 'none';
+
+                if (res.status === 200 && res.body.success) {
+                    completeResults = res.body.top_30;
+                    renderWorkspace(res.body);
+                } else {
+                    document.getElementById('uploadArea').style.display = 'block';
+                    showError(res.body.error || "An error occurred during prediction.");
+                }
+            })
+            .catch(() => {
+                document.getElementById('uploadLoader').style.display = 'none';
+                document.getElementById('uploadArea').style.display = 'block';
+                scanner.style.display = 'none';
+                showError("Network error. Please make sure the backend is running.");
+            });
+        }
+
+        function showError(msg) {
+            document.getElementById('errorMessage').textContent = msg;
+            document.getElementById('errorAlert').style.display = 'block';
+            document.getElementById('errorAlert').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function renderWorkspace(data) {
+            document.getElementById('totalCount').textContent = data.total_students;
+
+            const fastCount     = data.top_30.filter(s => s.learning_prediction.toLowerCase().includes('fast')).length;
+            const positiveCount = data.top_30.filter(s => s.behavior_sentiment === '+ve').length;
+
+            document.getElementById('fastLearnersCount').textContent     = fastCount;
+            document.getElementById('positiveBehaviorCount').textContent = positiveCount;
+
+            document.getElementById('excelDownloadBtn').setAttribute('href', data.download_url);
+
+            renderTableRows(data.top_30);
+
+            document.getElementById('resultsWorkspace').style.display = 'block';
+            AOS.refresh();
+
+            // Smooth scroll to results
+            setTimeout(() => {
+                document.getElementById('resultsWorkspace').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 200);
+        }
+
+        function renderTableRows(studentsList) {
+            const body = document.getElementById('resultsBody');
+            body.innerHTML = '';
+
+            studentsList.forEach((s, idx) => {
+                const tr = document.createElement('tr');
+
+                let speedClass = 'tag-average';
+                if (s.learning_prediction.toLowerCase().includes('fast')) speedClass = 'tag-fast';
+                if (s.learning_prediction.toLowerCase().includes('slow')) speedClass = 'tag-slow';
+
+                const sentClass = s.behavior_sentiment === '+ve' ? 'tag-pos' : 'tag-neg';
+
+                tr.innerHTML = `
+                    <td><strong style="color:#000000;">#${idx + 1}</strong></td>
+                    <td><strong style="color:#000000;">${s.student_name}</strong></td>
+                    <td style="color:#000000;font-weight:500;">${s.program_course}</td>
+                    <td style="color:#000000;">${s.semester}</td>
+                    <td><span class="tag ${speedClass}">${s.learning_prediction}</span></td>
+                    <td style="color:#000000;font-size:0.88rem;">${s.behavior_prediction}</td>
+                    <td><span class="tag ${sentClass}">${s.behavior_sentiment}</span></td>
+                    <td><span class="score-val" style="color:#34d399;">${s.reward_score.toFixed(4)}</span></td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function filterResults() {
+            const q = document.getElementById('tableSearch').value.toLowerCase().trim();
+            if (!q) { renderTableRows(completeResults); return; }
+            const filtered = completeResults.filter(s =>
+                s.student_name.toLowerCase().includes(q) ||
+                s.program_course.toLowerCase().includes(q)
+            );
+            renderTableRows(filtered);
+        }
+    </script>
+</body>
+</html>

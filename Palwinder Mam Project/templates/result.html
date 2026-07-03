@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Results — CASB-IRL</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .result-section { padding: 100px 0 60px; position: relative; z-index: 1; }
+
+        /* Hero result banner */
+        .result-hero {
+            background: linear-gradient(135deg, rgba(0,198,255,0.12), rgba(0,114,255,0.08));
+            border: 1px solid rgba(0,198,255,0.2);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        .result-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at top, rgba(0,198,255,0.1), transparent 70%);
+            pointer-events: none;
+        }
+        .student-avatar {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 16px;
+            box-shadow: 0 0 30px rgba(0,198,255,0.4);
+            animation: floatAvatar 3s ease-in-out infinite;
+        }
+        @keyframes floatAvatar {
+            0%,100% { transform: translateY(0); box-shadow: 0 0 30px rgba(0,198,255,0.4); }
+            50%      { transform: translateY(-8px); box-shadow: 0 12px 40px rgba(0,198,255,0.6); }
+        }
+        .student-name-display { font-size: 1.8rem; font-weight: 800; }
+
+        /* Big prediction badges */
+        .pred-badge-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+        .pred-badge-big {
+            border-radius: 20px;
+            padding: 20px 30px;
+            min-width: 200px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: popIn 0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+            opacity: 0;
+        }
+        .pred-badge-big:nth-child(1) { animation-delay: 0.1s; background: linear-gradient(135deg, rgba(0,198,255,0.15), rgba(0,114,255,0.1)); }
+        .pred-badge-big:nth-child(2) { animation-delay: 0.2s; background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(239,68,68,0.1)); }
+        .pred-badge-big:nth-child(3) { animation-delay: 0.3s; background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(0,198,255,0.1)); }
+        .pred-badge-icon { font-size: 2.2rem; margin-bottom: 8px; }
+        .pred-badge-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); }
+        .pred-badge-value { font-size: 1.1rem; font-weight: 700; margin-top: 4px; }
+        .pred-badge-big:nth-child(1) .pred-badge-value { color: #38bdf8; }
+        .pred-badge-big:nth-child(2) .pred-badge-value { color: #fbbf24; }
+        .pred-badge-big:nth-child(3) .pred-badge-value { color: #34d399; }
+
+        /* Section cards */
+        .section-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(12px);
+        }
+        .section-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-card-title i { color: var(--accent); }
+
+        /* Reward gauge */
+        .reward-gauge-wrap { text-align: center; }
+        .reward-gauge-num {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981, #00c6ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .reward-bar-wrap { height: 12px; border-radius: 50px; background: var(--glass); overflow: hidden; margin-top: 12px; }
+        .reward-bar-fill {
+            height: 100%;
+            border-radius: 50px;
+            background: linear-gradient(90deg, #10b981, #00c6ff);
+            box-shadow: 0 0 12px rgba(16,185,129,0.5);
+            transition: width 1.5s cubic-bezier(0.4,0,0.2,1);
+            width: 0%;
+        }
+
+        /* Rec cards */
+        .rec-card {
+            background: linear-gradient(135deg, rgba(0,198,255,0.08), rgba(0,114,255,0.04));
+            border: 1px solid rgba(0,198,255,0.2);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            animation: fadeInSlideUp 0.5s ease forwards;
+            opacity: 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .rec-card:hover {
+            transform: translateX(8px);
+            border-color: rgba(0,198,255,0.6);
+            background: linear-gradient(135deg, rgba(0,198,255,0.15), rgba(0,114,255,0.08));
+            box-shadow: -4px 4px 15px rgba(0,198,255,0.15);
+        }
+        .rec-card.completed {
+            opacity: 0.5;
+            border-color: rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.1);
+        }
+        .rec-card.completed .rec-text {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+        .rec-card.completed .rec-icon {
+            filter: grayscale(100%);
+        }
+        .rec-card:nth-child(1){animation-delay:0.1s}
+        .rec-card:nth-child(2){animation-delay:0.2s}
+        .rec-card:nth-child(3){animation-delay:0.3s}
+        .rec-card:nth-child(4){animation-delay:0.4s}
+        .rec-icon { 
+            font-size: 1.4rem; 
+            flex-shrink: 0; 
+            transition: transform 0.3s ease;
+        }
+        .rec-card:hover .rec-icon {
+            transform: scale(1.2) rotate(-5deg);
+        }
+        .rec-text  { font-size: 0.95rem; padding-top: 2px; transition: all 0.3s ease; }
+
+        /* Action buttons row */
+        .action-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 32px; }
+
+        /* Confetti flash */
+        @keyframes confettiFade { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-60px) scale(0.5)} }
+        .confetti-dot {
+            position: fixed;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            animation: confettiFade 1.5s ease forwards;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* No data state */
+        .no-data { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+        .no-data i { font-size: 3rem; margin-bottom: 16px; opacity: 0.4; }
+
+        /* PRINT STYLES FOR NATIVE TEXT PDF */
+        @media print {
+            body { 
+                background: #ffffff !important; 
+                color: #000000 !important; 
+            }
+            #particles-js, .custom-nav, .action-row, #themeToggle { 
+                display: none !important; 
+            }
+            .result-section { 
+                padding: 0 !important; 
+            }
+            .result-hero {
+                background: #f8fafc !important;
+                border: 2px solid #e2e8f0 !important;
+                color: #000000 !important;
+                box-shadow: none !important;
+                page-break-after: avoid;
+            }
+            .student-avatar {
+                box-shadow: none !important;
+                animation: none !important;
+                transform: none !important;
+            }
+            .pred-badge-big {
+                border: 2px solid #e2e8f0 !important;
+                background: #ffffff !important;
+            }
+            .section-card {
+                background: #ffffff !important;
+                border: 2px solid #e2e8f0 !important;
+                color: #000000 !important;
+                box-shadow: none !important;
+                page-break-inside: avoid;
+                margin-bottom: 20px !important;
+            }
+            .section-card-title, .student-name-display, .pred-badge-label {
+                color: #0f172a !important;
+            }
+            .reward-gauge-num {
+                background: none !important;
+                -webkit-text-fill-color: #000000 !important;
+                color: #000000 !important;
+            }
+            .rec-card {
+                background: #ffffff !important;
+                border: 1px solid #cbd5e1 !important;
+                color: #000000 !important;
+                page-break-inside: avoid;
+            }
+            .rec-text {
+                color: #334155 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top custom-nav">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">CASB-IRL</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/form"><i class="fa-solid fa-plus-circle me-1"></i>New Prediction</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/upload_page"><i class="fa-solid fa-file-csv me-1"></i>Batch Prediction</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/history_page"><i class="fa-solid fa-clock-rotate-left me-1"></i>History</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Particles -->
+    <div id="particles-js"></div>
+
+    <section class="result-section">
+        <div class="container" id="mainContent">
+
+            <!-- NO DATA FALLBACK -->
+            <div class="no-data" id="noDataMsg" style="display:none;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <h4>No Prediction Data Found</h4>
+                <p>Please fill out the student form first.</p>
+                <a href="/form" class="btn next-btn mt-3"><i class="fa-solid fa-arrow-left me-2"></i>Go to Form</a>
+            </div>
+
+            <!-- RESULT CONTENT -->
+            <div id="resultContent" style="display:none;">
+
+                <!-- HERO BANNER -->
+                <div class="result-hero" data-aos="fade-down">
+                    <div class="student-avatar">🎓</div>
+                    <div class="student-name-display" id="displayName">Student</div>
+                    <div style="color:var(--text-muted);margin-top:6px;font-size:0.9rem">
+                        AI-Powered Prediction Report &nbsp;|&nbsp;
+                        <span id="displayDate"></span>
+                    </div>
+
+                    <!-- 3 BIG BADGES -->
+                    <div class="pred-badge-row" id="badgeRow">
+                        <div class="pred-badge-big">
+                            <div class="pred-badge-icon">🎯</div>
+                            <div class="pred-badge-label">Learning Speed</div>
+                            <div class="pred-badge-value" id="badgeLearning">—</div>
+                        </div>
+                        <div class="pred-badge-big">
+                            <div class="pred-badge-icon">🧠</div>
+                            <div class="pred-badge-label">Behavior Category</div>
+                            <div class="pred-badge-value" id="badgeBehavior">—</div>
+                        </div>
+                        <div class="pred-badge-big">
+                            <div class="pred-badge-icon">⭐</div>
+                            <div class="pred-badge-label">Reward Score</div>
+                            <div class="pred-badge-value" id="badgeReward">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 1: PERFORMANCE GAUGE -->
+                <div class="row g-4 mb-4">
+                    <div class="col-12" data-aos="fade-up">
+                        <div class="section-card">
+                            <div class="section-card-title">
+                                <i class="fa-solid fa-gauge-high"></i> Performance Score
+                            </div>
+                            <div class="reward-gauge-wrap">
+                                <div class="reward-gauge-num" id="gaugeNum">0.0000</div>
+                                <div style="font-size:0.8rem;color:var(--text-muted)">Reward Score</div>
+                                <div class="reward-bar-wrap mt-3">
+                                    <div class="reward-bar-fill" id="rewardBarFill"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1" id="gaugeLabels" style="font-size:0.75rem;color:var(--text-muted)">
+                                    <span>0.0</span><span>0.5</span><span>1.0+</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 2: SHAP CHART -->
+                <div class="row g-4 mb-4">
+                    <div class="col-12" data-aos="fade-up" data-aos-delay="100">
+                        <div class="section-card" id="shapCard" style="display:none;">
+                            <div class="section-card-title">
+                                <i class="fa-solid fa-magnifying-glass-chart"></i>Key Factors
+                            </div>
+                            <canvas id="shapChart" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROW 3: RECOMMENDATIONS -->
+                <div class="row g-4">
+                    <div class="col-12" data-aos="fade-up" data-aos-delay="200">
+                        <div class="section-card" id="recCard" style="display:none;">
+                            <div class="section-card-title">
+                                <i class="fa-solid fa-lightbulb"></i> Personalised Recommendations
+                            </div>
+                            <div id="recList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div class="action-row" data-aos="fade-up">
+                    <button class="btn download-btn" onclick="downloadPDF()">
+                        <i class="fa-solid fa-file-pdf me-2"></i>Download PDF Report
+                    </button>
+                    <a href="/form" class="btn next-btn">
+                        <i class="fa-solid fa-plus me-2"></i>New Prediction
+                    </a>
+                    <a href="/history_page" class="btn prev-btn">
+                        <i class="fa-solid fa-clock-rotate-left me-2"></i>View History
+                    </a>
+                </div>
+
+            </div><!-- end resultContent -->
+        </div>
+    </section>
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        AOS.init({ duration: 700, once: true });
+
+        // Theme
+        // Particles
+        particlesJS("particles-js", {
+            "particles": {
+                "number": { "value": 50, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": "#00c6ff" },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.35, "random": true },
+                "size": { "value": 3, "random": true },
+                "line_linked": { "enable": true, "distance": 150, "color": "#00c6ff", "opacity": 0.3, "width": 1 },
+                "move": { "enable": true, "speed": 1.5, "out_mode": "out" }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": true, "mode": "repulse" }, "resize": true }
+            },
+            "retina_detect": true
+        });
+
+        // Confetti burst
+        function launchConfetti() {
+            const colors = ['#00c6ff','#0072ff','#34d399','#fbbf24','#f87171'];
+            for (let i = 0; i < 30; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'confetti-dot';
+                dot.style.cssText = `
+                    left:${Math.random()*100}vw;
+                    top:${Math.random()*40+10}vh;
+                    background:${colors[Math.floor(Math.random()*colors.length)]};
+                    animation-delay:${Math.random()*0.8}s;
+                    width:${Math.random()*10+6}px;
+                    height:${Math.random()*10+6}px;
+                `;
+                document.body.appendChild(dot);
+                setTimeout(() => dot.remove(), 2000);
+            }
+        }
+
+        // SHAP Chart
+        let shapChartInstance = null;
+        function renderShapChart(shapData) {
+            if (!shapData || shapData.length === 0) return;
+            document.getElementById('shapCard').style.display = 'block';
+            const labels = shapData.map(d => d.feature.length > 28 ? d.feature.substring(0,28)+'…' : d.feature);
+            const values = shapData.map(d => d.value);
+            const colors = values.map(v => v >= 0 ? 'rgba(0,198,255,0.85)' : 'rgba(248,113,113,0.85)');
+            const ctx = document.getElementById('shapChart').getContext('2d');
+            if (shapChartInstance) shapChartInstance.destroy();
+            shapChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'SHAP Impact',
+                        data: values,
+                        backgroundColor: colors,
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: ctx => ` Impact: ${ctx.parsed.x.toFixed(4)}` } }
+                    },
+                    scales: {
+                        x: { 
+                            grid: { color: 'rgba(255,255,255,0.07)' }, 
+                            ticks: { color: '#94a3b8' },
+                            title: { display: true, text: 'Impact on Prediction (SHAP Value)', color: '#94a3b8', font: { size: 12, weight: 'bold' } }
+                        },
+                        y: { 
+                            grid: { display: false }, 
+                            ticks: { color: '#cbd5e1', font: { size: 11 } },
+                            title: { display: true, text: 'Student Features', color: '#94a3b8', font: { size: 12, weight: 'bold' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Toggle recommendation completion
+        function toggleRec(element) {
+            element.classList.toggle('completed');
+        }
+
+        // Recommendations
+        const recIcons = [
+            '<i class="fa-solid fa-star" style="color: #fbbf24;"></i>', 
+            '<i class="fa-solid fa-bolt" style="color: #38bdf8;"></i>', 
+            '<i class="fa-solid fa-brain" style="color: #a78bfa;"></i>', 
+            '<i class="fa-solid fa-lightbulb" style="color: #fcd34d;"></i>',
+            '<i class="fa-solid fa-check-circle" style="color: #34d399;"></i>'
+        ];
+
+        function renderRecommendations(recs) {
+            if (!recs || recs.length === 0) return;
+            document.getElementById('recCard').style.display = 'block';
+            document.getElementById('recList').innerHTML = recs.map((rec, i) => `
+                <div class="rec-card" onclick="toggleRec(this)" title="Click to mark as done">
+                    <div class="rec-icon">${recIcons[i % recIcons.length]}</div>
+                    <div class="rec-text">${rec}</div>
+                </div>
+            `).join('');
+        }
+
+        // PDF Download (Native Text-based)
+        function downloadPDF() {
+            // Simply trigger the browser's native Print to PDF
+            // This guarantees selectable text and crisp vector rendering.
+            window.print();
+        }
+
+        // LOAD DATA FROM SESSION
+        const raw = sessionStorage.getItem('predictionResult');
+        if (!raw) {
+            document.getElementById('noDataMsg').style.display = 'block';
+        } else {
+            const result = JSON.parse(raw);
+            document.getElementById('resultContent').style.display = 'block';
+
+            // Names & Date
+            document.getElementById('displayName').textContent = result.student_name || 'Student';
+            document.getElementById('displayDate').textContent = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+
+            // Big Badges
+            document.getElementById('badgeLearning').textContent = result.learning_speed_prediction || '—';
+            document.getElementById('badgeBehavior').textContent  = result.behavior_prediction || '—';
+            const score = parseFloat(result.reward_score || 0);
+            document.getElementById('badgeReward').textContent = score.toFixed(4);
+
+            // Gauge
+            document.getElementById('gaugeNum').textContent = score.toFixed(4);
+            
+            // Dynamically scale the gauge depending on the score
+            const absScore = Math.abs(score);
+            let maxGauge = 2.0; // default max
+            if (absScore > 1.5) maxGauge = Math.ceil(absScore) + 1; // expand scale if score is high
+            
+            // Update labels
+            document.getElementById('gaugeLabels').innerHTML = `<span>0.0</span><span>${(maxGauge/2).toFixed(1)}</span><span>${maxGauge.toFixed(1)}+</span>`;
+            
+            // Normalize reward for bar
+            const pct = Math.min((absScore / maxGauge) * 100, 100);
+            setTimeout(() => {
+                document.getElementById('rewardBarFill').style.width = pct + '%';
+            }, 400);
+
+            // SHAP + Recs
+            renderShapChart(result.shap_data);
+            renderRecommendations(result.recommendations);
+
+            // Confetti if good score or fast learner
+            if (score > 0 || (result.learning_speed_prediction || '').toLowerCase().includes('fast')) {
+                setTimeout(launchConfetti, 600);
+            }
+        }
+    </script>
+</body>
+</html>

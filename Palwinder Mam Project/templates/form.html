@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CASB-IRL Student Prediction System - Form</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet"/>
+<link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet"/>
+<style>
+        .form-section { padding-top: 100px; padding-bottom: 100px; }
+        .form-container { max-width: 900px; margin: 0 auto; }
+        .form-step .mt-3 { text-align: center; margin-top: 28px !important; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top custom-nav">
+<div class="container">
+<a class="navbar-brand fw-bold" href="/">CASB-IRL</a>
+<button class="navbar-toggler" data-bs-target="#navbarNav" data-bs-toggle="collapse" type="button">
+<span class="navbar-toggler-icon"></span>
+</button>
+<div class="collapse navbar-collapse" id="navbarNav">
+<ul class="navbar-nav ms-auto align-items-center">
+<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="/upload_page"><i class="fa-solid fa-file-csv me-1"></i>Batch Prediction</a></li>
+<li class="nav-item"><a class="nav-link" href="/history_page"><i class="fa-solid fa-clock-rotate-left me-1"></i>History</a></li>
+
+</ul>
+</div>
+</div>
+</nav>
+<!-- FORM SECTION -->
+<section class="form-section" id="formSection">
+<div class="container">
+<div class="form-container">
+<!-- Progress -->
+<div class="progress mb-4">
+<div class="progress-bar" id="progressBar" style="width:0%"></div>
+</div>
+<!-- REAL-TIME ANALYTICS PANEL -->
+<div class="analytics-panel mb-4">
+<h6><i class="fa-solid fa-chart-simple me-2"></i>Real-Time Input Analytics</h6>
+<div class="row mt-3">
+<div class="col-md-4">
+<div class="meter-label">Engagement Score <span class="float-end text-info" id="engagementVal">0%</span></div>
+<div class="meter-bar"><div class="meter-fill engagement" id="engagementBar" style="width:0%"></div></div>
+</div>
+<div class="col-md-4">
+<div class="meter-label">Stress Indicator <span class="float-end text-warning" id="stressVal">0%</span></div>
+<div class="meter-bar"><div class="meter-fill stress" id="stressBar" style="width:0%"></div></div>
+</div>
+<div class="col-md-4">
+<div class="meter-label">Motivation Score <span class="float-end text-success" id="motivationVal">0%</span></div>
+<div class="meter-bar"><div class="meter-fill motivation" id="motivationBar" style="width:0%"></div></div>
+</div>
+</div>
+</div>
+<div class="mb-3 text-end" style="font-size: 0.9rem; color: var(--text-muted);">
+    <span class="text-danger">*</span> Indicates a mandatory field
+</div>
+<!-- STEP 1 -->
+<div class="form-step active">
+<h2 class="mb-4">Demographic / Personal</h2>
+<div class="row">
+<div class="col-md-6 mb-3">
+<label class="form-label">Name of the Student<span class="text-danger"> *</span></label>
+<input class="form-control" id="name_of_the_student" placeholder="Enter Name of the Student" required="" type="text"/>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Gender<span class="text-danger"> *</span></label>
+<select class="form-control" id="gender" required="">
+<option value="">Select Gender</option>
+<option value="Male">Male</option>
+<option value="Female">Female</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Age<span class="text-danger"> *</span></label>
+<input class="form-control" id="age" placeholder="Enter Age" required="" type="text"/>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Nationality<span class="text-danger"> *</span></label>
+<select class="form-control" id="nationality" required="">
+<option value="">Select Nationality</option>
+<option value="Indian">Indian</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Religion<span class="text-danger"> *</span></label>
+<select class="form-control" id="religion" required="">
+<option value="">Select Religion</option>
+<option value="Hindu">Hindu</option>
+<option value="Muslim">Muslim</option>
+<option value="Sikh">Sikh</option>
+<option value="Christian">Christian</option>
+<option value="Jain">Jain</option>
+<option value="Buddhism">Buddhism</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Food Preference<span class="text-danger"> *</span></label>
+<select class="form-control" id="food_preference" required="">
+<option value="">Select Food Preference</option>
+<option value="Vegetarian">Vegetarian</option>
+<option value="Non-Vegetarian">Non-Vegetarian</option>
+<option value="Both veg and non veg">Both Veg and Non-Veg</option>
+<option value="Vegan">Vegan</option>
+<option value="Eggetarian">Eggetarian</option>
+</select>
+</div>
+</div>
+<div class="mt-3">
+<button class="btn next-btn" onclick="nextStep()">Next</button>
+</div>
+</div>
+<!-- STEP 2 -->
+<div class="form-step">
+<h2 class="mb-4">Academic / Institutional</h2>
+<div class="row">
+<div class="col-md-6 mb-3">
+<label class="form-label">Admission Year<span class="text-danger"> *</span></label>
+<select class="form-control" id="admission_year" required="">
+<option value="">Select Admission Year</option>
+<option value="2019">2019</option>
+<option value="2020">2020</option>
+<option value="2021">2021</option>
+<option value="2022">2022</option>
+<option value="2023">2023</option>
+<option value="2024">2024</option>
+<option value="2025">2025</option>
+<option value="2026">2026</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Program / Course<span class="text-danger"> *</span></label>
+<select class="form-control" id="program_course" required="">
+<option value="">Select Program</option>
+<option value="BCA">BCA</option>
+<option value="MCA">MCA</option>
+<option value="B.Tech">B.Tech</option>
+<option value="M.Tech">M.Tech</option>
+<option value="B.Sc">B.Sc</option>
+<option value="M.Sc">M.Sc</option>
+<option value="BBA">BBA</option>
+<option value="MBA">MBA</option>
+<option value="BA">BA</option>
+<option value="MA">MA</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Semester<span class="text-danger"> *</span></label>
+<select class="form-control" id="semester" required="">
+<option value="">Select Semester</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Duration of Course<span class="text-danger"> *</span></label>
+<select class="form-control" id="duration_of_course" required="">
+<option value="">Select Duration (Years)</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Current Attendance Percentage<span class="text-danger"> *</span></label>
+<input class="form-control" id="current_attendance_percentage" placeholder="Enter Current Attendance Percentage" required="" type="text"/>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Previous Class Percentage<span class="text-danger"> *</span></label>
+<input class="form-control" id="previous_class_percentage" placeholder="Enter Previous Class Percentage" required="" type="text"/>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Skill</label>
+<select class="form-control" id="skill">
+<option value="">Select Skill</option>
+<option value="Computer Literacy">Computer Literacy</option>
+<option value="Creativity">Creativity</option>
+<option value="Critical Analysis">Critical Analysis</option>
+<option value="Explaining">Explaining</option>
+<option value="Listening">Listening</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Total Hours of Class in One Week<span class="text-danger"> *</span></label>
+<input class="form-control" id="total_hours_of_class_in_one_week" placeholder="Enter Total Hours of Class in One Week" required="" type="text"/>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Special Education Needs</label>
+<select class="form-control" id="special_education_needs">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">University Name / Board Name</label>
+<select class="form-control" id="university_name_board_name">
+<option value="">Select University/Board</option>
+<option value="Chandigarh University">Chandigarh University</option>
+<option value="Panjab University">Panjab University</option>
+<option value="Punjabi University">Punjabi University</option>
+<option value="CBSE">CBSE</option>
+<option value="PSEB">PSEB</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Level of difficulty of subjects<span class="text-danger"> *</span></label>
+<select class="form-control" id="level_of_difficulty_of_subjects" required="">
+<option value="">Select Difficulty</option>
+<option value="Easy">Easy</option>
+<option value="Medium">Medium</option>
+<option value="Hard">Hard</option>
+</select>
+</div>
+</div>
+<div class="mt-3">
+<button class="btn prev-btn me-2" onclick="prevStep()">Previous</button>
+<button class="btn next-btn" onclick="nextStep()">Next</button>
+</div>
+</div>
+<!-- STEP 3 -->
+<div class="form-step">
+<h2 class="mb-4">Behavioral Parameters (Part 1)</h2>
+<div class="row">
+<div class="col-md-6 mb-3">
+<label class="form-label">Study Time in One Day<span class="text-danger"> *</span></label>
+<input class="form-control" id="study_time_in_one_day" placeholder="Enter Study Time in One Day" required="" type="text"/>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Play Time in One Day<span class="text-danger"> *</span></label>
+<input class="form-control" id="play_time_in_one_day" placeholder="Enter Play Time in One Day" required="" type="text"/>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Free Time in One Day</label>
+<input class="form-control" id="free_time_in_one_day" placeholder="Enter Free Time in One Day" type="text"/>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Stress Level<span class="text-danger"> *</span></label>
+<select class="form-control" id="stress_level" required="">
+<option value="">Select Stress Level</option>
+<option value="No Stress">No Stress</option>
+<option value="Mild Stress">Mild Stress</option>
+<option value="Severe Stress">Severe Stress</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Socializing with Friends</label>
+<select class="form-control" id="socializing_with_friends">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Hours of Sleep<span class="text-danger"> *</span></label>
+<input class="form-control" id="hours_of_sleep" placeholder="Enter Hours of Sleep" required="" type="text"/>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Interest in Class Subjects</label>
+<input class="form-control" id="interest_in_class_subjects" placeholder="Enter Interest in Class Subjects" type="text"/>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Test Anxiety<span class="text-danger"> *</span></label>
+<select class="form-control" id="test_anxiety" required="">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Critical Thinking</label>
+<select class="form-control" id="critical_thinking">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Studying in Group<span class="text-danger"> *</span></label>
+<select class="form-control" id="studying_in_group" required="">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Extra Time Utilization</label>
+<input class="form-control" id="extra_time_utilization" placeholder="Enter Extra Time Utilization" type="text"/>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Way of Homework</label>
+<select class="form-control" id="way_of_homework">
+<option value="">Select Way of Homework</option>
+<option value="Remembering">Remembering</option>
+<option value="Understanding">Understanding</option>
+<option value="Written">Written</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Timely Submission of Assignments and</label>
+<select class="form-control" id="timely_submission_of_assignments_and">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Class Participation Frequency<span class="text-danger"> *</span></label>
+<select class="form-control" id="class_participation_frequency" required="">
+<option value="">Select Frequency</option>
+<option value="Low">Low</option>
+<option value="Average">Average</option>
+<option value="High">High</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Discipline History</label>
+<select class="form-control" id="discipline_history">
+<option value="">Select History</option>
+<option value="Low">Low</option>
+<option value="Average">Average</option>
+<option value="Good">Good</option>
+</select>
+</div>
+</div>
+<div class="mt-3">
+<button class="btn prev-btn me-2" onclick="prevStep()">Previous</button>
+<button class="btn next-btn" onclick="nextStep()">Next</button>
+</div>
+</div>
+<!-- STEP 4 -->
+<div class="form-step">
+<h2 class="mb-4">Behavioral Parameters (Part 2)</h2>
+<div class="row">
+<div class="col-md-6 mb-3">
+<label class="form-label">Note-taking Habits<span class="text-danger"> *</span></label>
+<select class="form-control" id="note_taking_habits" required="">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Absenteeism History</label>
+<select class="form-control" id="absenteeism_history">
+<option value="">Select History</option>
+<option value="Low">Low</option>
+<option value="Average">Average</option>
+<option value="High">High</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Peer Interactions</label>
+<select class="form-control" id="peer_interactions">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Number of Friends</label>
+<select class="form-control" id="number_of_friends">
+<option value="">Select Number</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="More Than 5">More Than 5</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Participation in Group Activities<span class="text-danger"> *</span></label>
+<select class="form-control" id="participation_in_group_activities" required="">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Response to Feedback / Criticism<span class="text-danger"> *</span></label>
+<select class="form-control" id="response_to_feedback_criticism" required="">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Question-Asking Frequency<span class="text-danger"> *</span></label>
+<select class="form-control" id="question_asking_frequency" required="">
+<option value="">Select Frequency</option>
+<option value="Low">Low</option>
+<option value="Average">Average</option>
+<option value="High">High</option>
+<option value="Unknown">Unknown</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Help-Seeking Behavior<span class="text-danger"> *</span></label>
+<select class="form-control" id="help_seeking_behavior" required="">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Leadership Roles</label>
+<select class="form-control" id="leadership_roles">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Sports Involvement</label>
+<select class="form-control" id="sports_involvement">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Volunteer Activities</label>
+<select class="form-control" id="volunteer_activities">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Level of Boredom During Classes</label>
+<select class="form-control" id="level_of_boredom_during_classes">
+<option value="">Select Level</option>
+<option value="Low">Low</option>
+<option value="Average">Average</option>
+<option value="High">High</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Having a Personal Tutor / Tuition</label>
+<select class="form-control" id="having_a_personal_tutor_tuition">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Contents of the Course are Interesting<span class="text-danger"> *</span></label>
+<select class="form-control" id="contents_of_the_course_are_interesting" required="">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Enjoy Mobile Devices for Learning</label>
+<select class="form-control" id="enjoy_mobile_devices_for_learning">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Time Spent on Social Media<span class="text-danger"> *</span></label>
+<input class="form-control" id="time_spent_on_social_media" placeholder="Enter Time Spent on Social Media" required="" type="text"/>
+</div>
+</div>
+<div class="mt-3">
+<button class="btn prev-btn me-2" onclick="prevStep()">Previous</button>
+<button class="btn next-btn" onclick="nextStep()">Next</button>
+</div>
+</div>
+<!-- STEP 5 -->
+<div class="form-step">
+<h2 class="mb-4">Family &amp; Socio-Economic</h2>
+<div class="row">
+<div class="col-md-6 mb-3">
+<label class="form-label">Parental Encouragement<span class="text-danger"> *</span></label>
+<select class="form-control" id="parental_encouragement" required="">
+<option value="">Select Option</option>
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Living with Parents / Hostel / PG<span class="text-danger"> *</span></label>
+<select class="form-control" id="living_with_parents_hostel_pg" required="">
+<option value="">Select Option</option>
+<option value="Parents">Parents</option>
+<option value="Hostel">Hostel</option>
+<option value="PG">PG</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Living City or Location</label>
+<select class="form-control" id="living_city_or_location">
+<option value="">Select City / Location</option>
+<optgroup label="Punjab Cities">
+<option value="Chandigarh">Chandigarh</option>
+<option value="Mohali">Mohali</option>
+<option value="Kharar">Kharar</option>
+<option value="Patiala">Patiala</option>
+<option value="Ludhiana">Ludhiana</option>
+<option value="Jalandhar">Jalandhar</option>
+<option value="Amritsar">Amritsar</option>
+<option value="Bathinda">Bathinda</option>
+<option value="Hoshiarpur">Hoshiarpur</option>
+<option value="Pathankot">Pathankot</option>
+<option value="Moga">Moga</option>
+<option value="Abohar">Abohar</option>
+<option value="Malerkotla">Malerkotla</option>
+<option value="Khanna">Khanna</option>
+<option value="Phagwara">Phagwara</option>
+<option value="Muktsar">Muktsar</option>
+<option value="Rajpura">Rajpura</option>
+<option value="Firozpur">Firozpur</option>
+<option value="Kapurthala">Kapurthala</option>
+<option value="Sunam">Sunam</option>
+<option value="Rupnagar">Rupnagar (Ropar)</option>
+<option value="Anandpur Sahib">Anandpur Sahib</option>
+</optgroup>
+<optgroup label="Top Outside Punjab">
+<option value="Delhi">Delhi</option>
+<option value="Mumbai">Mumbai</option>
+<option value="Bangalore">Bangalore</option>
+<option value="Pune">Pune</option>
+<option value="Hyderabad">Hyderabad</option>
+<option value="Chennai">Chennai</option>
+<option value="Kolkata">Kolkata</option>
+<option value="Jaipur">Jaipur</option>
+<option value="Lucknow">Lucknow</option>
+<option value="Ahmedabad">Ahmedabad</option>
+</optgroup>
+<optgroup label="Other">
+<option value="Other">Other</option>
+</optgroup>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Family Size<span class="text-danger"> *</span></label>
+<select class="form-control" id="family_size" required="">
+<option value="">Select Family Size</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="More Than 7">More Than 7</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Family Income Level<span class="text-danger"> *</span></label>
+<select class="form-control" id="family_income_level" required="">
+<option value="">Select Income Level</option>
+<option value="Low">Low</option>
+<option value="Medium">Medium</option>
+<option value="High">High</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Mother's Level of Education<span class="text-danger"> *</span></label>
+<select class="form-control" id="mother_s_level_of_education" required="">
+<option value="">Select Education</option>
+<option value="Illiterate">Illiterate</option>
+<option value="Primary">Primary</option>
+<option value="Secondary">Secondary</option>
+<option value="Higher Secondary">Higher Secondary</option>
+<option value="Graduate">Graduate</option>
+<option value="Post Graduate">Post Graduate</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Father's Level of Education<span class="text-danger"> *</span></label>
+<select class="form-control" id="father_s_level_of_education" required="">
+<option value="">Select Education</option>
+<option value="Illiterate">Illiterate</option>
+<option value="Primary">Primary</option>
+<option value="Secondary">Secondary</option>
+<option value="Higher Secondary">Higher Secondary</option>
+<option value="Graduate">Graduate</option>
+<option value="Post Graduate">Post Graduate</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Father Career</label>
+<select class="form-control" id="father_career">
+<option value="">Select Career</option>
+<option value="Government Job">Government Job</option>
+<option value="Private Job">Private Job</option>
+<option value="Business">Business</option>
+<option value="Farmer">Farmer</option>
+<option value="Self-Employed">Self-Employed</option>
+<option value="Retired">Retired</option>
+<option value="Unemployed">Unemployed</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Mother Career</label>
+<select class="form-control" id="mother_career">
+<option value="">Select Career</option>
+<option value="Housewife">Housewife / Homemaker</option>
+<option value="Government Job">Government Job</option>
+<option value="Private Job">Private Job</option>
+<option value="Business">Business</option>
+<option value="Farmer">Farmer</option>
+<option value="Self-Employed">Self-Employed</option>
+<option value="Retired">Retired</option>
+<option value="Unemployed">Unemployed</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Parent Status</label>
+<select class="form-control" id="parent_status">
+<option value="">Select Status</option>
+<option value="Both Alive">Both Alive</option>
+<option value="Father Alive">Father Alive Only</option>
+<option value="Mother Alive">Mother Alive Only</option>
+<option value="None Alive">None Alive</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Number of Brothers / Sisters</label>
+<select class="form-control" id="number_of_brothers_sisters">
+<option value="">Select Number</option>
+<option value="0">0</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="More than 5">More than 5</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Position as Child</label>
+<select class="form-control" id="position_as_child">
+<option value="">Select Position</option>
+<option value="First">First</option>
+<option value="Second">Second</option>
+<option value="Third">Third</option>
+<option value="Fourth">Fourth</option>
+<option value="Other">Other</option>
+</select>
+</div>
+</div>
+<div class="mt-3">
+<button class="btn prev-btn me-2" onclick="prevStep()">Previous</button>
+<button class="btn next-btn" onclick="nextStep()">Next</button>
+</div>
+</div>
+<!-- STEP 6 -->
+<div class="form-step">
+<h2 class="mb-4">Health &amp; Logistics</h2>
+<div class="row">
+<div class="col-md-6 mb-3">
+<label class="form-label">Health Status<span class="text-danger"> *</span></label>
+<select class="form-control" id="health_status" required="">
+<option value="">Select Status</option>
+<option value="Healthy Person">Healthy Person</option>
+<option value="Physical Disability">Physical Disability</option>
+<option value="Suffering a Critical Issue">Suffering a Critical Issue</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Transport Method Used</label>
+<select class="form-control" id="transport_method_used">
+<option value="">Select Method</option>
+<option value="Auto">Auto</option>
+<option value="Bicycle">Bicycle</option>
+<option value="Bike">Bike (Motorcycle)</option>
+<option value="Bus">Bus</option>
+<option value="Car">Car</option>
+<option value="On Foot">On Foot / Walk</option>
+<option value="Scooter">Scooter</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Distance of Educational Institution</label>
+<input class="form-control" id="distance_of_educational_institution" placeholder="Enter Distance of Educational Institution" type="text"/>
+</div>
+<div class="col-md-6 mb-3">
+<label class="form-label">Write Name if having any Physical Disability</label>
+<input class="form-control" id="write_name_if_having_any_physical_disability" placeholder="Enter Write Name if having any Physical Disability" type="text"/>
+</div>
+</div>
+<div class="mt-3">
+<button class="btn prev-btn me-2" onclick="prevStep()">Previous</button>
+<button class="btn submit-btn" onclick="submitForm()">Predict</button>
+</div>
+</div>
+<!-- LOADING OVERLAY -->
+<div class="text-center mt-4" id="loadingBox" style="display: none;">
+<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+<p class="mt-2" id="loadingText">Analyzing student profile...</p>
+</div>
+<!-- RESULT -->
+<div class="result-box mt-5" id="resultBox">
+<div class="result-card">
+<div class="text-center mb-4">
+<h3 class="fw-bold mb-3"><i class="fa-solid fa-brain me-2" style="color:#00c6ff"></i>AI Prediction Results</h3>
+<div class="mb-3">
+<span class="result-badge badge-learning" id="learningResult"></span>
+<span class="result-badge badge-behavior" id="behaviorResult"></span>
+<span class="result-badge badge-reward" id="rewardResult"></span>
+</div>
+</div>
+<!-- SHAP CHART -->
+<div id="shapChartContainer" style="display:none">
+<h5 class="mb-3"><i class="fa-solid fa-magnifying-glass-chart me-2" style="color:#00c6ff"></i>AI Explainability — Top Influencing Factors</h5>
+<canvas height="180" id="shapChart"></canvas>
+</div>
+<!-- RECOMMENDATIONS -->
+<div class="mt-4" id="recommendationsBox" style="display:none">
+<h5 class="mb-3"><i class="fa-solid fa-lightbulb me-2" style="color:#fbbf24"></i>Personalised Recommendations</h5>
+<div id="recommendationsList"></div>
+</div>
+<!-- ACTIONS -->
+<div class="text-center mt-4">
+<button class="btn download-btn me-2" onclick="downloadPDF()">
+<i class="fa-solid fa-file-pdf me-2"></i>Download PDF Report
+                            </button>
+<a class="btn next-btn" href="/history_page">
+<i class="fa-solid fa-clock-rotate-left me-2"></i>View History
+                            </a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay">
+<div class="ai-scanner"></div>
+<div class="loading-text" id="overlayText">Analyzing behavioral patterns<span class="loading-dots"></span></div>
+</div>
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+        AOS.init({ duration: 700, once: true });
+
+        // Theme Toggle
+        // REAL-TIME ANALYTICS
+        const analyticsFields = {
+            stress: ['stress_level', 'test_anxiety', 'absenteeism_history'],
+            engagement: ['class_participation_frequency', 'note_taking_habits', 'help_seeking_behavior', 'critical_thinking'],
+            motivation: ['studying_in_group', 'leadership_roles', 'volunteer_activities', 'sports_involvement']
+        };
+        const stressMap = { 'Severe Stress': 100, 'Mild Stress': 50, 'No Stress': 10 };
+        const yesNoMap  = { 'Yes': 100, 'No': 10 };
+        const freqMap   = { 'High': 100, 'Average': 55, 'Low': 20 };
+
+        function scoreField(id) {
+            const el = document.getElementById(id);
+            if (!el) return 50;
+            const v = el.value;
+            if (v === '') return 0;
+            if (stressMap[v] !== undefined) return stressMap[v];
+            if (yesNoMap[v]  !== undefined) return yesNoMap[v];
+            if (freqMap[v]   !== undefined) return freqMap[v];
+            return 50;
+        }
+
+        function updateAnalytics() {
+            const stressScore = Math.round(analyticsFields.stress.reduce((s,id)=>s+scoreField(id),0)/analyticsFields.stress.length);
+            const engScore    = Math.round(analyticsFields.engagement.reduce((s,id)=>s+scoreField(id),0)/analyticsFields.engagement.length);
+            const motScore    = Math.round(analyticsFields.motivation.reduce((s,id)=>s+scoreField(id),0)/analyticsFields.motivation.length);
+
+            document.getElementById('engagementBar').style.width  = engScore + '%';
+            document.getElementById('stressBar').style.width       = stressScore + '%';
+            document.getElementById('motivationBar').style.width   = motScore + '%';
+            document.getElementById('engagementVal').textContent   = engScore + '%';
+            document.getElementById('stressVal').textContent       = stressScore + '%';
+            document.getElementById('motivationVal').textContent   = motScore + '%';
+        }
+        document.querySelectorAll('select, input').forEach(el => el.addEventListener('change', updateAnalytics));
+
+        // STEPS
+        let currentStep = 0;
+        const steps = document.querySelectorAll(".form-step");
+
+        function updateProgress() {
+            const progress = ((currentStep + 1) / steps.length) * 100;
+            document.getElementById("progressBar").style.width = progress + "%";
+        }
+        updateProgress();
+
+        function validateCurrentStep() {
+            const inputs = steps[currentStep].querySelectorAll('input[required], select[required]');
+            let isValid = true;
+            inputs.forEach(input => {
+                if (input.value.trim() === "") { input.classList.add('is-invalid'); isValid = false; }
+                else input.classList.remove('is-invalid');
+            });
+            return isValid;
+        }
+
+        function nextStep() {
+            if (!validateCurrentStep()) { alert("Please fill in all required fields before proceeding."); return; }
+            steps[currentStep].classList.remove("active");
+            currentStep++;
+            steps[currentStep].classList.add("active");
+            updateProgress();
+            window.scrollTo({ top: document.getElementById('formSection').offsetTop - 60, behavior: 'smooth' });
+        }
+
+        function prevStep() {
+            steps[currentStep].classList.remove("active");
+            currentStep--;
+            steps[currentStep].classList.add("active");
+            updateProgress();
+            window.scrollTo({ top: document.getElementById('formSection').offsetTop - 60, behavior: 'smooth' });
+        }
+
+        // ANIMATED LOADING MESSAGES
+        const loadingMessages = [
+            "Analyzing behavioral patterns",
+            "Calculating learning metrics",
+            "Generating AI insights",
+            "Computing reward score",
+            "Finalizing predictions"
+        ];
+        let msgIdx = 0, msgInterval;
+
+        function startLoadingAnimation() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.add('active');
+            msgIdx = 0;
+            document.getElementById('overlayText').innerHTML = loadingMessages[0] + '<span class="loading-dots"></span>';
+            msgInterval = setInterval(() => {
+                msgIdx = (msgIdx + 1) % loadingMessages.length;
+                document.getElementById('overlayText').innerHTML = loadingMessages[msgIdx] + '<span class="loading-dots"></span>';
+            }, 1500);
+        }
+
+        function stopLoadingAnimation() {
+            clearInterval(msgInterval);
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+
+        // SHAP CHART
+        let shapChartInstance = null;
+        function renderShapChart(shapData) {
+            if (!shapData || shapData.length === 0) return;
+            document.getElementById('shapChartContainer').style.display = 'block';
+            const labels = shapData.map(d => d.feature.length > 25 ? d.feature.substring(0,25)+'...' : d.feature);
+            const values = shapData.map(d => d.value);
+            const colors = values.map(v => v >= 0 ? 'rgba(0,198,255,0.8)' : 'rgba(248,113,113,0.8)');
+            const ctx = document.getElementById('shapChart').getContext('2d');
+            if (shapChartInstance) shapChartInstance.destroy();
+            shapChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{ label: 'SHAP Impact', data: values, backgroundColor: colors, borderRadius: 8, borderSkipped: false }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: ctx => ` Impact: ${ctx.parsed.x.toFixed(4)}` } }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { display: false }, ticks: { color: '#cbd5e1', font: { size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        // RECOMMENDATIONS
+        const recIcons = ['\ud83d\udca4', '\ud83c\udfc3', '\ud83d\udcda', '\ud83c\udf19', '\ud83d\udcf5', '\u2705', '\ud83e\udde0', '\ud83d\udcca'];
+        function renderRecommendations(recs) {
+            if (!recs || recs.length === 0) return;
+            document.getElementById('recommendationsBox').style.display = 'block';
+            const container = document.getElementById('recommendationsList');
+            container.innerHTML = recs.map((rec, i) => `
+                <div class="rec-card" style="animation-delay:${i*0.1}s">
+                    <div class="rec-icon">${recIcons[i % recIcons.length]}</div>
+                    <div class="rec-text">${rec}</div>
+                </div>
+            `).join('');
+        }
+
+        // SUBMIT
+        async function submitForm() {
+            if (!validateCurrentStep()) { alert("Please fill in all required fields before submitting."); return; }
+
+            const data = {
+                "\u2078Name of the Student": document.getElementById("name_of_the_student").value,
+                "Gender": document.getElementById("gender").value,
+                "Age": document.getElementById("age").value,
+                "Nationality": document.getElementById("nationality").value,
+                "Religion": document.getElementById("religion").value,
+                "Food Preference": document.getElementById("food_preference").value,
+                "Admission Year": document.getElementById("admission_year").value,
+                "Program / Course": document.getElementById("program_course").value,
+                "Semester": document.getElementById("semester").value,
+                "Duration of the Couse (In years )": document.getElementById("duration_of_course").value,
+                "Current Attendance Percentage (Overall)": document.getElementById("current_attendance_percentage").value,
+                "Previous Class Percentage (In percentage)": document.getElementById("previous_class_percentage").value,
+                "Skill": document.getElementById("skill").value,
+                "Total Hours of Class in One Week (In Hours)": document.getElementById("total_hours_of_class_in_one_week").value,
+                "Special Education needs depending on the disability": document.getElementById("special_education_needs").value,
+                "University Name / Board Name": document.getElementById("university_name_board_name").value,
+                "Level of difficulty of subjects": document.getElementById("level_of_difficulty_of_subjects").value,
+                "Study Time in One Day(In Hours)": document.getElementById("study_time_in_one_day").value,
+                "Play Time in One Day (In Hours)": document.getElementById("play_time_in_one_day").value,
+                "Free Time in One Day(In Hours)": document.getElementById("free_time_in_one_day").value,
+                "Stress Level": document.getElementById("stress_level").value,
+                "Socializing with Friends": document.getElementById("socializing_with_friends").value,
+                "Hours of Sleep (In hours)": document.getElementById("hours_of_sleep").value,
+                "Interest in class subjects (Tell subject name in which you are interested), \nIf yes( write the subject name) , If no (write no)": document.getElementById("interest_in_class_subjects").value,
+                "Test Anxiety": document.getElementById("test_anxiety").value,
+                "Critical Thinking": document.getElementById("critical_thinking").value,
+                "Studying in group": document.getElementById("studying_in_group").value,
+                "Extra Time Utilization (In Hours)": document.getElementById("extra_time_utilization").value,
+                "Way of Homework": document.getElementById("way_of_homework").value,
+                "Timely Submission of Assignments and Homework": document.getElementById("timely_submission_of_assignments_and").value,
+                "Class Participation Frequency": document.getElementById("class_participation_frequency").value,
+                "Discipline History": document.getElementById("discipline_history").value,
+                "Note-taking Habits": document.getElementById("note_taking_habits").value,
+                "Absenteeism History": document.getElementById("absenteeism_history").value,
+                "Peer Interactions": document.getElementById("peer_interactions").value,
+                "Number of Friends": document.getElementById("number_of_friends").value,
+                "Participation in Group Activities": document.getElementById("participation_in_group_activities").value,
+                "Response to Feedback / Criticism": document.getElementById("response_to_feedback_criticism").value,
+                "Question-Asking Frequency": document.getElementById("question_asking_frequency").value,
+                "Help-Seeking Behavior": document.getElementById("help_seeking_behavior").value,
+                "Leadership Roles": document.getElementById("leadership_roles").value,
+                "Sports Involvement": document.getElementById("sports_involvement").value,
+                "Volunteer Activities": document.getElementById("volunteer_activities").value,
+                "Level of Boredom During Classes": document.getElementById("level_of_boredom_during_classes").value,
+                "Having a Personal Tutor or go for Tuition?": document.getElementById("having_a_personal_tutor_tuition").value,
+                "Contents of the Course are Interesting": document.getElementById("contents_of_the_course_are_interesting").value,
+                "Enjoy Mobile Devices for Learning": document.getElementById("enjoy_mobile_devices_for_learning").value,
+                "Time Spent on Social Media (In Hours)": document.getElementById("time_spent_on_social_media").value,
+                "Parental Encouragement": document.getElementById("parental_encouragement").value,
+                "Living with Parents, Hostel or PG": document.getElementById("living_with_parents_hostel_pg").value,
+                "Living City or Location": document.getElementById("living_city_or_location").value,
+                "Family Size": document.getElementById("family_size").value,
+                "Family Income Level (Low (\u20b91.5 lakh to \u20b94 lakh)/ Medium (\u20b94 lakh to \u20b920 lakh) / High (>\u20b915 lakh))": document.getElementById("family_income_level").value,
+                "Mother's level of Education": document.getElementById("mother_s_level_of_education").value,
+                "Father's level of Education": document.getElementById("father_s_level_of_education").value,
+                "Father Career": document.getElementById("father_career").value,
+                "Mother Career": document.getElementById("mother_career").value,
+                "Parent Status": document.getElementById("parent_status").value,
+                "No of Brothers/ Sisters": document.getElementById("number_of_brothers_sisters").value,
+                "Position as child": document.getElementById("position_as_child").value,
+                "Health Status": document.getElementById("health_status").value,
+                "Transport method used": document.getElementById("transport_method_used").value,
+                "Distance of Educational Institution (In KM.)": document.getElementById("distance_of_educational_institution").value,
+                "Write Name if having any Physical Disability or Suffering a Critical Issue": document.getElementById("write_name_if_having_any_physical_disability").value
+            };
+
+            startLoadingAnimation();
+            document.getElementById("resultBox").classList.remove("show");
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                stopLoadingAnimation();
+
+                if (result.error) {
+                    alert("Prediction Error: " + result.error);
+                    return;
+                }
+
+                // Store result + student name in sessionStorage and redirect
+                result.student_name = data["\u2078Name of the Student"] || "Student";
+                sessionStorage.setItem("predictionResult", JSON.stringify(result));
+                window.location.href = "/result";
+
+            } catch (e) {
+                stopLoadingAnimation();
+                alert("An error occurred: " + e.message);
+            }
+        }
+
+        // PDF DOWNLOAD
+        function downloadPDF() {
+            const element = document.getElementById('resultBox');
+            const opt = {
+                margin: 0.5,
+                filename: 'CASB_IRL_Prediction_Report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, backgroundColor: '#0f172a' },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
